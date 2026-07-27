@@ -42,7 +42,7 @@ fetching full page content is left to the agent's page-fetch tool.
 Requires [Node.js](https://nodejs.org) 18+.
 
 **Option A — npx (quickest, no clone).** Nothing to install up front; your MCP client runs
-the published package directly with `npx -y @real_jiakai/kagi-mcp` (see the configs below).
+the published package directly with `npx -y kagi-mcp-claude-fable-5` (see the configs below).
 
 **Option B — from source:**
 
@@ -71,13 +71,13 @@ node test.js "capital of japan"
 ## 4. Hook it up
 
 The examples use the npx form. Running from source instead? Replace
-`npx -y @real_jiakai/kagi-mcp` with `node /path/to/kagi-mcp/src/index.js`
+`npx -y kagi-mcp-claude-fable-5` with `node /path/to/kagi-mcp/src/index.js`
 (Windows JSON needs escaped backslashes: `"C:\\path\\to\\kagi-mcp\\src\\index.js"`).
 
 ### Claude Code
 
 ```bash
-claude mcp add kagi -s user --env KAGI_SESSION_TOKEN=<token> -- npx -y @real_jiakai/kagi-mcp
+claude mcp add kagi -s user --env KAGI_SESSION_TOKEN=<token> -- npx -y kagi-mcp-claude-fable-5
 ```
 
 (`-s user` makes the server available in all your projects; omit it for project-local.)
@@ -89,7 +89,7 @@ claude mcp add kagi -s user --env KAGI_SESSION_TOKEN=<token> -- npx -y @real_jia
   "mcpServers": {
     "kagi": {
       "command": "npx",
-      "args": ["-y", "@real_jiakai/kagi-mcp"],
+      "args": ["-y", "kagi-mcp-claude-fable-5"],
       "env": { "KAGI_SESSION_TOKEN": "<token or session link>" }
     }
   }
@@ -102,7 +102,7 @@ claude mcp add kagi -s user --env KAGI_SESSION_TOKEN=<token> -- npx -y @real_jia
 openclaw mcp add kagi \
   --command npx \
   --arg -y \
-  --arg @real_jiakai/kagi-mcp \
+  --arg kagi-mcp-claude-fable-5 \
   --env KAGI_SESSION_TOKEN=<token>
 ```
 
@@ -116,7 +116,7 @@ Add to `~/.hermes/config.yaml` under `mcp_servers`:
 mcp_servers:
   kagi:
     command: "npx"
-    args: ["-y", "@real_jiakai/kagi-mcp"]
+    args: ["-y", "kagi-mcp-claude-fable-5"]
     env:
       KAGI_SESSION_TOKEN: "<token or session link>"
 ```

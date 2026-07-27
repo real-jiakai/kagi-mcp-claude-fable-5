@@ -1,5 +1,5 @@
 {
-  "name": "@real_jiakai/kagi-mcp",
+  "name": "kagi-mcp-claude-fable-5",
   "version": "1.0.0",
   "description": "MCP server for Kagi Search using your session token - web & news search, lenses, regions. No API subscription needed.",
   "type": "module",
@@ -38,9 +38,6 @@
   "homepage": "https://github.com/real-jiakai/kagi-mcp-claude-fable-5#readme",
   "bugs": {
     "url": "https://github.com/real-jiakai/kagi-mcp-claude-fable-5/issues"
-  },
-  "publishConfig": {
-    "access": "public"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.17.0",

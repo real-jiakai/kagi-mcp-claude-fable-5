@@ -1,18 +1,46 @@
 {
-  "name": "kagi-mcp",
+  "name": "@real-jiakai/kagi-mcp",
   "version": "1.0.0",
-  "description": "MCP server for Kagi Search using your Kagi session token (no API key needed)",
+  "description": "MCP server for Kagi Search using your session token - web & news search, lenses, regions. No API subscription needed.",
   "type": "module",
   "bin": {
     "kagi-mcp": "src/index.js"
   },
   "main": "src/index.js",
+  "files": [
+    "src/",
+    "README.md",
+    "README.zh-CN.md",
+    "LICENSE"
+  ],
   "scripts": {
     "start": "node src/index.js",
     "test": "node test.js"
   },
   "engines": {
     "node": ">=18"
+  },
+  "keywords": [
+    "mcp",
+    "mcp-server",
+    "model-context-protocol",
+    "kagi",
+    "kagi-search",
+    "search",
+    "claude",
+    "ai-agents"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/real-jiakai/kagi-mcp-claude-fable-5.git"
+  },
+  "homepage": "https://github.com/real-jiakai/kagi-mcp-claude-fable-5#readme",
+  "bugs": {
+    "url": "https://github.com/real-jiakai/kagi-mcp-claude-fable-5/issues"
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.17.0",

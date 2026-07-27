@@ -41,6 +41,11 @@ fetching full page content is left to the agent's page-fetch tool.
 
 Requires [Node.js](https://nodejs.org) 18+.
 
+**Option A — npx (quickest, no clone).** Nothing to install up front; your MCP client runs
+the published package directly with `npx -y @real-jiakai/kagi-mcp` (see the configs below).
+
+**Option B — from source:**
+
 ```bash
 git clone https://github.com/real-jiakai/kagi-mcp-claude-fable-5.git kagi-mcp
 cd kagi-mcp
@@ -65,13 +70,14 @@ node test.js "capital of japan"
 
 ## 4. Hook it up
 
-Replace `/path/to/kagi-mcp` below with wherever you cloned the repo
-(on Windows e.g. `C:\path\to\kagi-mcp`).
+The examples use the npx form. Running from source instead? Replace
+`npx -y @real-jiakai/kagi-mcp` with `node /path/to/kagi-mcp/src/index.js`
+(Windows JSON needs escaped backslashes: `"C:\\path\\to\\kagi-mcp\\src\\index.js"`).
 
 ### Claude Code
 
 ```bash
-claude mcp add kagi -s user --env KAGI_SESSION_TOKEN=<token> -- node /path/to/kagi-mcp/src/index.js
+claude mcp add kagi -s user --env KAGI_SESSION_TOKEN=<token> -- npx -y @real-jiakai/kagi-mcp
 ```
 
 (`-s user` makes the server available in all your projects; omit it for project-local.)
@@ -82,16 +88,38 @@ claude mcp add kagi -s user --env KAGI_SESSION_TOKEN=<token> -- node /path/to/ka
 {
   "mcpServers": {
     "kagi": {
-      "command": "node",
-      "args": ["/path/to/kagi-mcp/src/index.js"],
+      "command": "npx",
+      "args": ["-y", "@real-jiakai/kagi-mcp"],
       "env": { "KAGI_SESSION_TOKEN": "<token or session link>" }
     }
   }
 }
 ```
 
-On Windows, write the path with escaped backslashes, e.g.
-`"C:\\path\\to\\kagi-mcp\\src\\index.js"`.
+### OpenClaw
+
+```bash
+openclaw mcp add kagi \
+  --command npx \
+  --arg -y \
+  --arg @real-jiakai/kagi-mcp \
+  --env KAGI_SESSION_TOKEN=<token>
+```
+
+Verify with `openclaw mcp doctor kagi --probe`.
+
+### Hermes Agent
+
+Add to `~/.hermes/config.yaml` under `mcp_servers`:
+
+```yaml
+mcp_servers:
+  kagi:
+    command: "npx"
+    args: ["-y", "@real-jiakai/kagi-mcp"]
+    env:
+      KAGI_SESSION_TOKEN: "<token or session link>"
+```
 
 ## Notes
 

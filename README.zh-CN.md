@@ -40,7 +40,7 @@
 需要 [Node.js](https://nodejs.org) 18 及以上版本。
 
 **方式 A —— npx（最快，无需克隆）。** 无需预先安装；你的 MCP 客户端会通过
-`npx -y @real-jiakai/kagi-mcp` 直接运行已发布的包（见下方配置）。
+`npx -y @real_jiakai/kagi-mcp` 直接运行已发布的包（见下方配置）。
 
 **方式 B —— 从源码：**
 
@@ -68,14 +68,14 @@ node test.js "capital of japan"
 
 ## 4. 接入客户端
 
-以下示例均使用 npx 形式。若从源码运行，请将 `npx -y @real-jiakai/kagi-mcp`
+以下示例均使用 npx 形式。若从源码运行，请将 `npx -y @real_jiakai/kagi-mcp`
 替换为 `node /path/to/kagi-mcp/src/index.js`（Windows 的 JSON 中需转义反斜杠：
 `"C:\\path\\to\\kagi-mcp\\src\\index.js"`）。
 
 ### Claude Code
 
 ```bash
-claude mcp add kagi -s user --env KAGI_SESSION_TOKEN=<令牌> -- npx -y @real-jiakai/kagi-mcp
+claude mcp add kagi -s user --env KAGI_SESSION_TOKEN=<令牌> -- npx -y @real_jiakai/kagi-mcp
 ```
 
 （`-s user` 使该服务器在你的所有项目中可用；省略则仅当前项目可用。）
@@ -87,7 +87,7 @@ claude mcp add kagi -s user --env KAGI_SESSION_TOKEN=<令牌> -- npx -y @real-ji
   "mcpServers": {
     "kagi": {
       "command": "npx",
-      "args": ["-y", "@real-jiakai/kagi-mcp"],
+      "args": ["-y", "@real_jiakai/kagi-mcp"],
       "env": { "KAGI_SESSION_TOKEN": "<令牌或会话链接>" }
     }
   }
@@ -100,7 +100,7 @@ claude mcp add kagi -s user --env KAGI_SESSION_TOKEN=<令牌> -- npx -y @real-ji
 openclaw mcp add kagi \
   --command npx \
   --arg -y \
-  --arg @real-jiakai/kagi-mcp \
+  --arg @real_jiakai/kagi-mcp \
   --env KAGI_SESSION_TOKEN=<令牌>
 ```
 
@@ -114,7 +114,7 @@ openclaw mcp add kagi \
 mcp_servers:
   kagi:
     command: "npx"
-    args: ["-y", "@real-jiakai/kagi-mcp"]
+    args: ["-y", "@real_jiakai/kagi-mcp"]
     env:
       KAGI_SESSION_TOKEN: "<令牌或会话链接>"
 ```

@@ -1,5 +1,5 @@
 {
-  "name": "@real-jiakai/kagi-mcp",
+  "name": "@real_jiakai/kagi-mcp",
   "version": "1.0.0",
   "description": "MCP server for Kagi Search using your session token - web & news search, lenses, regions. No API subscription needed.",
   "type": "module",

@@ -37,26 +37,42 @@
 
 ## 2. 安装
 
-```powershell
+需要 [Node.js](https://nodejs.org) 18 及以上版本。
+
+```bash
+git clone https://github.com/real-jiakai/kagi-mcp-claude-fable-5.git kagi-mcp
 cd kagi-mcp
 npm install
 ```
 
 ## 3. 冒烟测试
 
+macOS / Linux：
+
+```bash
+KAGI_SESSION_TOKEN='<令牌或会话链接>' node test.js "capital of japan"   # 网页搜索
+KAGI_SESSION_TOKEN='<令牌或会话链接>' node test.js "tokyo" news         # 新闻搜索
+```
+
+Windows（PowerShell）：
+
 ```powershell
 $env:KAGI_SESSION_TOKEN = '<令牌或会话链接>'
-node test.js "capital of japan"        # 网页搜索
-node test.js "tokyo" news              # 新闻搜索
+node test.js "capital of japan"
 ```
 
 ## 4. 接入客户端
 
+请将下文中的 `/path/to/kagi-mcp` 替换为你克隆仓库的实际路径
+（Windows 下形如 `C:\path\to\kagi-mcp`）。
+
 ### Claude Code
 
-```powershell
-claude mcp add kagi --env KAGI_SESSION_TOKEN=<令牌> -- node C:\Users\Administrator\Downloads\kagi-mcp\src\index.js
+```bash
+claude mcp add kagi -s user --env KAGI_SESSION_TOKEN=<令牌> -- node /path/to/kagi-mcp/src/index.js
 ```
+
+（`-s user` 使该服务器在你的所有项目中可用；省略则仅当前项目可用。）
 
 ### Claude Desktop / 任意 MCP 客户端（JSON 配置）
 
@@ -65,12 +81,15 @@ claude mcp add kagi --env KAGI_SESSION_TOKEN=<令牌> -- node C:\Users\Administr
   "mcpServers": {
     "kagi": {
       "command": "node",
-      "args": ["C:\\Users\\Administrator\\Downloads\\kagi-mcp\\src\\index.js"],
+      "args": ["/path/to/kagi-mcp/src/index.js"],
       "env": { "KAGI_SESSION_TOKEN": "<令牌或会话链接>" }
     }
   }
 }
 ```
+
+Windows 下路径请使用转义反斜杠，例如
+`"C:\\path\\to\\kagi-mcp\\src\\index.js"`。
 
 ## 说明
 
@@ -83,3 +102,9 @@ claude mcp add kagi --env KAGI_SESSION_TOKEN=<令牌> -- node C:\Users\Administr
 - 本工具以与浏览器完全相同的方式使用你的 Kagi 账户 —— 智能体的正常搜索量与日常
   使用无异。它不是官方的 [Kagi Search API](https://help.kagi.com/kagi/api/search.html)
   （后者单独计费）。
+
+## 致谢
+
+本项目由 **[Claude Fable 5](https://www.anthropic.com/news/claude-fable-5-mythos-5)**
+通过 Claude Code 端到端完成设计、实现与测试 —— 包括对 Kagi HTML 接口的实时分析、
+多智能体对抗式代码审查，以及浏览器"人工点击 vs MCP"一致性验证。

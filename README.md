@@ -39,26 +39,42 @@ fetching full page content is left to the agent's page-fetch tool.
 
 ## 2. Install
 
-```powershell
+Requires [Node.js](https://nodejs.org) 18+.
+
+```bash
+git clone https://github.com/real-jiakai/kagi-mcp-claude-fable-5.git kagi-mcp
 cd kagi-mcp
 npm install
 ```
 
 ## 3. Smoke test
 
+macOS / Linux:
+
+```bash
+KAGI_SESSION_TOKEN='<token or session link>' node test.js "capital of japan"   # web search
+KAGI_SESSION_TOKEN='<token or session link>' node test.js "tokyo" news         # news search
+```
+
+Windows (PowerShell):
+
 ```powershell
 $env:KAGI_SESSION_TOKEN = '<token or session link>'
-node test.js "capital of japan"        # web search
-node test.js "tokyo" news              # news search
+node test.js "capital of japan"
 ```
 
 ## 4. Hook it up
 
+Replace `/path/to/kagi-mcp` below with wherever you cloned the repo
+(on Windows e.g. `C:\path\to\kagi-mcp`).
+
 ### Claude Code
 
-```powershell
-claude mcp add kagi --env KAGI_SESSION_TOKEN=<token> -- node C:\Users\Administrator\Downloads\kagi-mcp\src\index.js
+```bash
+claude mcp add kagi -s user --env KAGI_SESSION_TOKEN=<token> -- node /path/to/kagi-mcp/src/index.js
 ```
+
+(`-s user` makes the server available in all your projects; omit it for project-local.)
 
 ### Claude Desktop / any MCP client (JSON config)
 
@@ -67,12 +83,15 @@ claude mcp add kagi --env KAGI_SESSION_TOKEN=<token> -- node C:\Users\Administra
   "mcpServers": {
     "kagi": {
       "command": "node",
-      "args": ["C:\\Users\\Administrator\\Downloads\\kagi-mcp\\src\\index.js"],
+      "args": ["/path/to/kagi-mcp/src/index.js"],
       "env": { "KAGI_SESSION_TOKEN": "<token or session link>" }
     }
   }
 }
 ```
+
+On Windows, write the path with escaped backslashes, e.g.
+`"C:\\path\\to\\kagi-mcp\\src\\index.js"`.
 
 ## Notes
 
@@ -85,3 +104,9 @@ claude mcp add kagi --env KAGI_SESSION_TOKEN=<token> -- node C:\Users\Administra
 - This uses your normal Kagi account the same way a browser would — standard fair-use search
   volume from an agent is indistinguishable from regular usage. It is not the official
   [Kagi Search API](https://help.kagi.com/kagi/api/search.html) (which bills separately).
+
+## Acknowledgements
+
+Designed, implemented, and tested end-to-end with **[Claude Fable 5](https://www.anthropic.com/news/claude-fable-5-mythos-5)**
+via Claude Code — including live analysis of Kagi's HTML interface, an adversarial
+multi-agent code review, and human-click vs. MCP parity testing in the browser.

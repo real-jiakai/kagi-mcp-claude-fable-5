@@ -1,6 +1,6 @@
 {
   "name": "kagi-mcp-claude-fable-5",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "MCP server for Kagi Search using your session token - web & news search, lenses, regions. No API subscription needed.",
   "type": "module",
   "bin": {

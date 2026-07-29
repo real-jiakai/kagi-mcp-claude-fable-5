@@ -35,43 +35,10 @@
 > **请像对待密码一样对待会话链接** —— 任何持有它的人都能使用你的 Kagi 账户。
 > 如果泄露，请在同一设置页面重新生成（旧链接会立即失效）。
 
-## 2. 安装
+## 2. 接入你的 AI 智能体
 
-需要 [Node.js](https://nodejs.org) 18 及以上版本（推荐最新 LTS）。
-
-**方式 A —— npx（最快，无需克隆）。** 无需预先安装；你的 MCP 客户端会通过
-`npx -y kagi-mcp-claude-fable-5` 直接运行已发布的包（见下方配置）。
-
-**方式 B —— 从源码**（TypeScript，克隆后需构建一次）：
-
-```bash
-git clone https://github.com/real-jiakai/kagi-mcp-claude-fable-5.git kagi-mcp
-cd kagi-mcp
-npm install
-npm run build
-```
-
-## 3. 冒烟测试
-
-macOS / Linux：
-
-```bash
-KAGI_SESSION_TOKEN='<令牌或会话链接>' node test.js "capital of japan"   # 网页搜索
-KAGI_SESSION_TOKEN='<令牌或会话链接>' node test.js "tokyo" news         # 新闻搜索
-```
-
-Windows（PowerShell）：
-
-```powershell
-$env:KAGI_SESSION_TOKEN = '<令牌或会话链接>'
-node test.js "capital of japan"
-```
-
-## 4. 接入客户端
-
-以下示例均使用 npx 形式。若从源码运行，请将 `npx -y kagi-mcp-claude-fable-5`
-替换为 `node /path/to/kagi-mcp/dist/index.js`（Windows 的 JSON 中需转义反斜杠：
-`"C:\\path\\to\\kagi-mcp\\dist\\index.js"`）。
+以下示例均通过 `npx` 直接运行已发布的 npm 包 —— 无需预先安装
+（需要 [Node.js](https://nodejs.org) 18+，推荐最新 LTS）。
 
 ### Claude Code
 
@@ -81,19 +48,23 @@ claude mcp add kagi -s user --env KAGI_SESSION_TOKEN=<令牌> -- npx -y kagi-mcp
 
 （`-s user` 使该服务器在你的所有项目中可用；省略则仅当前项目可用。）
 
-### Claude Desktop / 任意 MCP 客户端（JSON 配置）
+### Codex CLI
 
-```json
-{
-  "mcpServers": {
-    "kagi": {
-      "command": "npx",
-      "args": ["-y", "kagi-mcp-claude-fable-5"],
-      "env": { "KAGI_SESSION_TOKEN": "<令牌或会话链接>" }
-    }
-  }
-}
+```bash
+codex mcp add kagi --env KAGI_SESSION_TOKEN=<令牌> -- npx -y kagi-mcp-claude-fable-5
 ```
+
+或直接在 `~/.codex/config.toml` 中添加：
+
+```toml
+[mcp_servers.kagi]
+command = "npx"
+args = ["-y", "kagi-mcp-claude-fable-5"]
+env = { "KAGI_SESSION_TOKEN" = "<令牌或会话链接>" }
+```
+
+（Windows 下如果服务器启动失败，请将 `command` 设为 `npx.cmd` 的完整路径，
+例如 `'C:\Program Files\nodejs\npx.cmd'`。）
 
 ### OpenClaw
 
@@ -120,23 +91,33 @@ mcp_servers:
       KAGI_SESSION_TOKEN: "<令牌或会话链接>"
 ```
 
-### Codex CLI
+### 任意 MCP 客户端（Claude Desktop 等）—— JSON 配置
+
+```json
+{
+  "mcpServers": {
+    "kagi": {
+      "command": "npx",
+      "args": ["-y", "kagi-mcp-claude-fable-5"],
+      "env": { "KAGI_SESSION_TOKEN": "<令牌或会话链接>" }
+    }
+  }
+}
+```
+
+## 开发
 
 ```bash
-codex mcp add kagi --env KAGI_SESSION_TOKEN=<令牌> -- npx -y kagi-mcp-claude-fable-5
+git clone https://github.com/real-jiakai/kagi-mcp-claude-fable-5.git kagi-mcp
+cd kagi-mcp
+npm install    # 会自动完成 TypeScript 构建（输出到 dist/）
+
+# 用真实 Kagi 账户做冒烟测试（末尾加 `news` 可测试新闻垂类）
+KAGI_SESSION_TOKEN='<令牌或会话链接>' node test.js "capital of japan"
 ```
 
-或直接在 `~/.codex/config.toml` 中添加：
-
-```toml
-[mcp_servers.kagi]
-command = "npx"
-args = ["-y", "kagi-mcp-claude-fable-5"]
-env = { "KAGI_SESSION_TOKEN" = "<令牌或会话链接>" }
-```
-
-（Windows 下如果服务器启动失败，请将 `command` 设为 `npx.cmd` 的完整路径，
-例如 `'C:\Program Files\nodejs\npx.cmd'`。）
+如需让客户端使用本地检出的代码而非 npm 包，将命令设为
+`node /path/to/kagi-mcp/dist/index.js`；修改 `src/` 后请重新执行 `npm run build`。
 
 ## 说明
 

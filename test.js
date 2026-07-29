@@ -2,7 +2,7 @@
 // Smoke test that exercises the client directly (no MCP transport).
 //   $env:KAGI_SESSION_TOKEN='<token or session link>'; node test.js "your query"
 //   node test.js "tokyo" news       <- news vertical
-import { KagiClient, formatResults } from "./src/kagi.js";
+import { KagiClient, formatResults } from "./dist/kagi.js";
 
 const query = process.argv[2] || "capital of japan";
 const mode = (process.argv[3] || "web").toLowerCase();

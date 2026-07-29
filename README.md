@@ -39,17 +39,18 @@ fetching full page content is left to the agent's page-fetch tool.
 
 ## 2. Install
 
-Requires [Node.js](https://nodejs.org) 18+.
+Requires [Node.js](https://nodejs.org) 18+ (latest LTS recommended).
 
 **Option A — npx (quickest, no clone).** Nothing to install up front; your MCP client runs
 the published package directly with `npx -y kagi-mcp-claude-fable-5` (see the configs below).
 
-**Option B — from source:**
+**Option B — from source** (TypeScript; build once after cloning):
 
 ```bash
 git clone https://github.com/real-jiakai/kagi-mcp-claude-fable-5.git kagi-mcp
 cd kagi-mcp
 npm install
+npm run build
 ```
 
 ## 3. Smoke test
@@ -71,8 +72,8 @@ node test.js "capital of japan"
 ## 4. Hook it up
 
 The examples use the npx form. Running from source instead? Replace
-`npx -y kagi-mcp-claude-fable-5` with `node /path/to/kagi-mcp/src/index.js`
-(Windows JSON needs escaped backslashes: `"C:\\path\\to\\kagi-mcp\\src\\index.js"`).
+`npx -y kagi-mcp-claude-fable-5` with `node /path/to/kagi-mcp/dist/index.js`
+(Windows JSON needs escaped backslashes: `"C:\\path\\to\\kagi-mcp\\dist\\index.js"`).
 
 ### Claude Code
 
@@ -121,6 +122,24 @@ mcp_servers:
       KAGI_SESSION_TOKEN: "<token or session link>"
 ```
 
+### Codex CLI
+
+```bash
+codex mcp add kagi --env KAGI_SESSION_TOKEN=<token> -- npx -y kagi-mcp-claude-fable-5
+```
+
+Or add a table to `~/.codex/config.toml` directly:
+
+```toml
+[mcp_servers.kagi]
+command = "npx"
+args = ["-y", "kagi-mcp-claude-fable-5"]
+env = { "KAGI_SESSION_TOKEN" = "<token or session link>" }
+```
+
+(On Windows, if the server fails to spawn, set `command` to the full path of
+`npx.cmd`, e.g. `'C:\Program Files\nodejs\npx.cmd'`.)
+
 ## Notes
 
 - **Auth failures**: if the token is invalid/expired, Kagi 302-redirects to its landing page;
@@ -128,7 +147,7 @@ mcp_servers:
 - **Parsing**: results are extracted via Kagi's own machine-readable markers
   (`._0_SRI`, `a._0_URL`, `._0_TITLE`, `._0_DESC`), which are stable across the web and
   news verticals (verified July 2026). If Kagi ever changes its markup, update
-  `parseResultsPage()` in `src/kagi.js`.
+  `parseResultsPage()` in `src/kagi.ts`.
 - This uses your normal Kagi account the same way a browser would — standard fair-use search
   volume from an agent is indistinguishable from regular usage. It is not the official
   [Kagi Search API](https://help.kagi.com/kagi/api/search.html) (which bills separately).

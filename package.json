@@ -1,20 +1,23 @@
 {
   "name": "kagi-mcp-claude-fable-5",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "MCP server for Kagi Search using your session token - web & news search, lenses, regions. No API subscription needed.",
   "type": "module",
   "bin": {
-    "kagi-mcp": "src/index.js"
+    "kagi-mcp": "dist/index.js"
   },
-  "main": "src/index.js",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "files": [
-    "src/",
+    "dist/",
     "README.md",
     "README.zh-CN.md",
     "LICENSE"
   ],
   "scripts": {
-    "start": "node src/index.js",
+    "build": "tsc",
+    "prepare": "npm run build",
+    "start": "node dist/index.js",
     "test": "node test.js"
   },
   "engines": {
@@ -43,5 +46,9 @@
     "@modelcontextprotocol/sdk": "^1.30.0",
     "cheerio": "^1.1.0",
     "zod": "^3.25.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "typescript": "^5.9.0"
   }
 }

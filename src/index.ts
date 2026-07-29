@@ -2,13 +2,13 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
-import { KagiClient, formatResults } from "./kagi.js";
+import { KagiClient, formatResults, type SearchResponse } from "./kagi.js";
 
 const client = new KagiClient(process.env.KAGI_SESSION_TOKEN);
 
 const server = new McpServer({
   name: "kagi-mcp",
-  version: "1.0.0",
+  version: "1.1.0",
 });
 
 // Fresh instance per field — sharing one zod instance makes the JSON schema
@@ -19,10 +19,19 @@ const DATE = () =>
     .regex(/^\d{4}-\d{2}-\d{2}$/, "must be YYYY-MM-DD")
     .optional();
 
-function asToolResult(promise) {
+interface ToolResult {
+  content: Array<{ type: "text"; text: string }>;
+  isError?: boolean;
+  [key: string]: unknown;
+}
+
+function asToolResult(promise: Promise<SearchResponse>): Promise<ToolResult> {
   return promise.then(
-    (parsed) => ({ content: [{ type: "text", text: formatResults(parsed) }] }),
-    (err) => ({ content: [{ type: "text", text: `Error: ${err.message}` }], isError: true })
+    (parsed) => ({ content: [{ type: "text" as const, text: formatResults(parsed) }] }),
+    (err: unknown) => ({
+      content: [{ type: "text" as const, text: `Error: ${err instanceof Error ? err.message : String(err)}` }],
+      isError: true,
+    })
   );
 }
 
@@ -78,12 +87,12 @@ server.registerTool(
       "account, with their ids. Pass a lens name or id to kagi_search's lens parameter.",
     inputSchema: {},
   },
-  () =>
+  (): Promise<ToolResult> =>
     client.listLenses().then(
       (lenses) => ({
         content: [
           {
-            type: "text",
+            type: "text" as const,
             text: lenses.length
               ? "Available Kagi lenses (use name or id with kagi_search):\n" +
                 lenses.map((l) => `- ${l.name} (id ${l.id})`).join("\n")
@@ -91,7 +100,10 @@ server.registerTool(
           },
         ],
       }),
-      (err) => ({ content: [{ type: "text", text: `Error: ${err.message}` }], isError: true })
+      (err: unknown) => ({
+        content: [{ type: "text" as const, text: `Error: ${err instanceof Error ? err.message : String(err)}` }],
+        isError: true,
+      })
     )
 );
 

@@ -1,13 +1,57 @@
 import * as cheerio from "cheerio";
+import type { CheerioAPI } from "cheerio";
 
 const BASE = "https://kagi.com";
 const TIMEOUT_MS = 20000;
+
+export interface KagiResult {
+  title: string;
+  url: string;
+  snippet?: string;
+  time?: string;
+  group?: string;
+}
+
+export interface ParsedResultsPage {
+  results: KagiResult[];
+  related: string[];
+}
+
+export interface SearchResponse extends ParsedResultsPage {
+  query: string;
+  page?: number;
+  region?: string;
+  lens?: string;
+  /** Total parsed results when `limit` clipped the list. */
+  clipped?: number;
+}
+
+export interface Lens {
+  name: string;
+  id: string;
+}
+
+export interface SearchOptions {
+  /** Supports Kagi operators: "exact", site:, -exclude, OR... */
+  query: string;
+  /** 1-based page number (Kagi "batch" param). */
+  page?: number;
+  /** YYYY-MM-DD */
+  fromDate?: string;
+  /** YYYY-MM-DD */
+  toDate?: string;
+  limit?: number;
+  /** ISO country code ("us", "cn"...); defaults to "no_region" (international). */
+  region?: string;
+  /** Lens name or numeric lens id. */
+  lens?: string | number;
+}
 
 /**
  * Accepts either a bare session token or a full Kagi session link
  * (https://kagi.com/search?token=XXXX) and returns the bare token.
  */
-export function resolveToken(raw) {
+export function resolveToken(raw: string | undefined | null): string | null {
   if (!raw) return null;
   raw = raw.trim();
   const m = raw.match(/[?&]token=([^&\s]+)/);
@@ -30,21 +74,22 @@ export class KagiAuthError extends Error {}
 
 // Maps low-level fetch failures to a readable message. undici hides the real
 // reason (ECONNREFUSED, ENOTFOUND, TLS...) inside err.cause.
-const unreachable = (err) =>
-  new Error(
-    `Could not reach kagi.com: ${
-      err?.name === "TimeoutError"
-        ? "request timed out"
-        : err?.cause?.message || err?.message || String(err)
-    }`
-  );
+const unreachable = (err: unknown): Error => {
+  const e = err as { name?: string; message?: string; cause?: { message?: string } } | null;
+  const reason =
+    e?.name === "TimeoutError" ? "request timed out" : e?.cause?.message || e?.message || String(err);
+  return new Error(`Could not reach kagi.com: ${reason}`);
+};
 
 export class KagiClient {
-  constructor(token) {
+  readonly token: string | null;
+  private _lenses?: Lens[];
+
+  constructor(token?: string | null) {
     this.token = resolveToken(token);
   }
 
-  async fetchHtml(path, params = {}) {
+  async fetchHtml(path: string, params: Record<string, string | number | undefined> = {}): Promise<string> {
     if (!this.token) {
       throw new KagiAuthError(
         "No Kagi session token configured. Set the KAGI_SESSION_TOKEN environment variable " +
@@ -55,7 +100,7 @@ export class KagiClient {
     for (const [k, v] of Object.entries(params)) {
       if (v !== undefined && v !== null && v !== "") url.searchParams.set(k, String(v));
     }
-    let res;
+    let res: Response;
     try {
       res = await fetch(url, {
         headers: {
@@ -105,15 +150,14 @@ export class KagiClient {
   /**
    * Lenses (curated search scopes) available on this account, parsed from the
    * search page's filter panel. Cached for the process lifetime.
-   * @returns {Promise<Array<{name: string, id: string}>>}
    */
-  async listLenses() {
+  async listLenses(): Promise<Lens[]> {
     if (this._lenses) return this._lenses;
     const html = await this.fetchHtml("/html/search", { q: "kagi" });
     const $ = cheerio.load(html);
-    const lenses = [];
+    const lenses: Lens[] = [];
     $(".filter-lens-item a").each((_, a) => {
-      const name = ($(a).text() || "").replace(/\s+/g, " ").trim();
+      const name = cleanText($(a).text());
       const m = ($(a).attr("href") || "").match(/[?&]lens=(\d+)/);
       if (name && m && !lenses.some((l) => l.id === m[1])) lenses.push({ name, id: m[1] });
     });
@@ -122,7 +166,7 @@ export class KagiClient {
   }
 
   /** Accepts a numeric lens id or a lens name; returns the id (or undefined). */
-  async resolveLens(lens) {
+  async resolveLens(lens: string | number | undefined | null): Promise<string | undefined> {
     if (lens === undefined || lens === null || lens === "") return undefined;
     const s = String(lens).trim();
     if (/^\d+$/.test(s)) return s;
@@ -135,19 +179,8 @@ export class KagiClient {
     return hit.id;
   }
 
-  /**
-   * Web search via Kagi's lightweight HTML interface.
-   * @param {object} opts
-   * @param {string} opts.query - supports Kagi operators: "exact", site:, -exclude, OR...
-   * @param {number} [opts.page] - 1-based page number (Kagi "batch" param)
-   * @param {string} [opts.fromDate] - YYYY-MM-DD
-   * @param {string} [opts.toDate] - YYYY-MM-DD
-   * @param {number} [opts.limit]
-   * @param {string} [opts.region] - ISO country code ("us", "cn"...); defaults to
-   *   "no_region" (international) so results are location-neutral unless asked.
-   * @param {string|number} [opts.lens] - lens name or numeric lens id
-   */
-  async search({ query, page = 1, fromDate, toDate, limit, region, lens } = {}) {
+  /** Web search via Kagi's lightweight HTML interface. */
+  async search({ query, page = 1, fromDate, toDate, limit, region, lens }: SearchOptions): Promise<SearchResponse> {
     if (region === undefined || region === null || region === "") region = "no_region";
     const r = String(region).trim().toLowerCase();
     if (!/^([a-z]{2}|no_region)$/.test(r)) {
@@ -167,7 +200,7 @@ export class KagiClient {
   }
 
   /** News search via Kagi's lightweight HTML interface. */
-  async news({ query, limit } = {}) {
+  async news({ query, limit }: { query: string; limit?: number }): Promise<SearchResponse> {
     const html = await this.fetchHtml("/html/news", { q: query });
     // The news page opens with a headline-only "top stories" widget; prefer the
     // full news items (with time + snippet) when present.
@@ -178,7 +211,7 @@ export class KagiClient {
   }
 }
 
-function clip(parsed, limit) {
+function clip(parsed: ParsedResultsPage, limit?: number): ParsedResultsPage & { clipped?: number } {
   if (limit && limit > 0 && parsed.results.length > limit) {
     return { ...parsed, results: parsed.results.slice(0, limit), clipped: parsed.results.length };
   }
@@ -191,10 +224,10 @@ function clip(parsed, limit) {
  * title with `._0_TITLE` and snippet with `._0_DESC` (verified July 2026 on
  * both the web and news verticals).
  */
-export function parseResultsPage(html, { prefer } = {}) {
-  const $ = cheerio.load(html);
-  const results = [];
-  const seen = new Set();
+export function parseResultsPage(html: string, { prefer }: { prefer?: string } = {}): ParsedResultsPage {
+  const $: CheerioAPI = cheerio.load(html);
+  const results: KagiResult[] = [];
+  const seen = new Set<string>();
 
   let itemSelector = "._0_SRI";
   if (prefer && $(prefer).length > 0) itemSelector = prefer;
@@ -202,7 +235,7 @@ export function parseResultsPage(html, { prefer } = {}) {
   $(itemSelector).each((_, el) => {
     const $el = $(el);
     const link = $el.find("a._0_URL").first();
-    let url = (link.attr("href") || "").trim();
+    const url = (link.attr("href") || "").trim();
     if (!/^https?:\/\//i.test(url)) return; // skip internal/JS links
     if (seen.has(url)) return; // widgets can duplicate organic results
     seen.add(url);
@@ -215,6 +248,7 @@ export function parseResultsPage(html, { prefer } = {}) {
       cleanText($el.find("a.__sri_title_link").first().text()) ||
       cleanText(link.text()) ||
       url;
+
     // The description box nests the time span and the "Summarize" control; drop both.
     const $desc = $el.find("._0_DESC, .__sri-desc").first().clone();
     $desc.find(".__sri-time, .newsResultTime").remove();
@@ -227,16 +261,22 @@ export function parseResultsPage(html, { prefer } = {}) {
 
     // Results inside inline widgets (Videos, Interesting Finds, ...) get a group label.
     const widget = $el.closest(".inline-content");
-    let group = null;
+    let group: string | null = null;
     if (widget.length) {
       group = cleanText(widget.find(".widget-header").first().text()) || null;
       if (group) group = group.replace(/\s*(Show more|More).*$/i, "").trim() || null;
     }
 
-    results.push({ title, url, snippet: snippet || undefined, time: time || undefined, group: group || undefined });
+    results.push({
+      title,
+      url,
+      snippet: snippet || undefined,
+      time: time || undefined,
+      group: group || undefined,
+    });
   });
 
-  const related = [];
+  const related: string[] = [];
   $(".related-searches a").each((_, a) => {
     const t = cleanText($(a).text());
     if (t && !related.includes(t)) related.push(t);
@@ -261,14 +301,14 @@ export function parseResultsPage(html, { prefer } = {}) {
   return { results, related };
 }
 
-function cleanText(s) {
+function cleanText(s: string | undefined | null): string {
   return (s || "").replace(/\s+/g, " ").trim();
 }
 
 /** Compact, LLM-friendly plain-text rendering. */
-export function formatResults({ query, page, region, lens, results, related, clipped }) {
+export function formatResults({ query, page, region, lens, results, related, clipped }: SearchResponse): string {
   const scope = [
-    page > 1 ? `page ${page}` : null,
+    page && page > 1 ? `page ${page}` : null,
     region ? `region ${region}` : null,
     lens ? `lens ${lens}` : null,
   ].filter(Boolean);
@@ -276,7 +316,7 @@ export function formatResults({ query, page, region, lens, results, related, cli
   if (!results.length) {
     return `No Kagi results for "${query}"${scopeText}.`;
   }
-  const lines = [];
+  const lines: string[] = [];
   lines.push(`Kagi results for "${query}"${scopeText}:`);
   lines.push("");
   results.forEach((r, i) => {

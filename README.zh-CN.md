@@ -37,17 +37,18 @@
 
 ## 2. 安装
 
-需要 [Node.js](https://nodejs.org) 18 及以上版本。
+需要 [Node.js](https://nodejs.org) 18 及以上版本（推荐最新 LTS）。
 
 **方式 A —— npx（最快，无需克隆）。** 无需预先安装；你的 MCP 客户端会通过
 `npx -y kagi-mcp-claude-fable-5` 直接运行已发布的包（见下方配置）。
 
-**方式 B —— 从源码：**
+**方式 B —— 从源码**（TypeScript，克隆后需构建一次）：
 
 ```bash
 git clone https://github.com/real-jiakai/kagi-mcp-claude-fable-5.git kagi-mcp
 cd kagi-mcp
 npm install
+npm run build
 ```
 
 ## 3. 冒烟测试
@@ -69,8 +70,8 @@ node test.js "capital of japan"
 ## 4. 接入客户端
 
 以下示例均使用 npx 形式。若从源码运行，请将 `npx -y kagi-mcp-claude-fable-5`
-替换为 `node /path/to/kagi-mcp/src/index.js`（Windows 的 JSON 中需转义反斜杠：
-`"C:\\path\\to\\kagi-mcp\\src\\index.js"`）。
+替换为 `node /path/to/kagi-mcp/dist/index.js`（Windows 的 JSON 中需转义反斜杠：
+`"C:\\path\\to\\kagi-mcp\\dist\\index.js"`）。
 
 ### Claude Code
 
@@ -119,6 +120,24 @@ mcp_servers:
       KAGI_SESSION_TOKEN: "<令牌或会话链接>"
 ```
 
+### Codex CLI
+
+```bash
+codex mcp add kagi --env KAGI_SESSION_TOKEN=<令牌> -- npx -y kagi-mcp-claude-fable-5
+```
+
+或直接在 `~/.codex/config.toml` 中添加：
+
+```toml
+[mcp_servers.kagi]
+command = "npx"
+args = ["-y", "kagi-mcp-claude-fable-5"]
+env = { "KAGI_SESSION_TOKEN" = "<令牌或会话链接>" }
+```
+
+（Windows 下如果服务器启动失败，请将 `command` 设为 `npx.cmd` 的完整路径，
+例如 `'C:\Program Files\nodejs\npx.cmd'`。）
+
 ## 说明
 
 - **认证失败**：令牌无效或过期时，Kagi 会 302 重定向到官网首页；服务器能检测到这
@@ -126,7 +145,7 @@ mcp_servers:
 - **解析方式**：搜索结果通过 Kagi 自带的机器可读标记提取
   （`._0_SRI`、`a._0_URL`、`._0_TITLE`、`._0_DESC`），这些标记在网页与新闻两个
   垂类中保持一致（2026 年 7 月验证）。如果 Kagi 未来更改页面结构，请更新
-  `src/kagi.js` 中的 `parseResultsPage()`。
+  `src/kagi.ts` 中的 `parseResultsPage()`。
 - 本工具以与浏览器完全相同的方式使用你的 Kagi 账户 —— 智能体的正常搜索量与日常
   使用无异。它不是官方的 [Kagi Search API](https://help.kagi.com/kagi/api/search.html)
   （后者单独计费）。
